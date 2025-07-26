@@ -1,7 +1,6 @@
 local cloneref = cloneref or function(...) return ... end
 local HttpService = cloneref(game.GetService(game, "HttpService"))
 
--- keep the original behavior & gsub chain
 local function strip(flag: string)
     return flag
         :gsub("DFInt", "")
@@ -12,7 +11,7 @@ local function strip(flag: string)
         :gsub("FString", "")
         :gsub("FLog", "")
         :gsub("DFLog", "")
-        :gsub("DFFLoat", "") -- kept as-is (original typo)
+        :gsub("DFFLoat", "") 
         :gsub("FFloat", "")
         :gsub("DFTime", "")
         :gsub("FTime", "")
