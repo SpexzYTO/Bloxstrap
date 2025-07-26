@@ -1,59 +1,17 @@
 local cloneref = cloneref or function(...) return ... end
-local HttpService = cloneref(game:GetService("HttpService"))
-
-return function(flag: string, value: string): ()
+local HttpService = cloneref(game.GetService(game, "HttpService"))
+return function(flag: string, value: string): (string, string) -> ()
 	local type = type or typeof
-	if type(flag) ~= "string" then
-		return task.spawn(error, "string expected, got " .. type(flag))
+	if type(flag) ~= "string" then return task.spawn(error, "string expected, got "..type(flag)) end
+	local FFlag: string = Bloxstrap.TouchEnabled and flag:gsub("DFInt", ""):gsub("DFFlag", ""):gsub("FFlag", ""):gsub("FInt", ""):gsub("DFString", ""):gsub("FString", ""):gsub("DFLog", ""):gsub("FLog", ""):gsub("FTime", ""):gsub("DFTime", ""):gsub("FTest", ""):gsub("DFTest", "") or flag --> Removes the keyword of the FFlag, setfflag doesn't like those so we will need to remove it.
+	
+	if getfflag(FFlag) ~= nil then
+		local fflagfile = HttpService:JSONDecode(readfile("Bloxstrap/FFlags.json"))
+		fflagfile[flag] = tostring(value)
+		writefile("Bloxstrap/FFlags.json", HttpService:JSONEncode(fflagfile))
+		return setfflag(FFlag, tostring(value))
+	else
+		local err = isfile(errorlog) and readfile(errorlog) or "Error while loading FFlags: "
+		return writefile(errorlog, err.."\nFFlag expected, got "..FFlag)
 	end
-
-	local setterMap = {
-		["FFlag"] = setfflag,
-		["FInt"] = setfint,
-		["DFInt"] = setdfint,
-		["SFInt"] = setsfint,
-		["FUInt"] = setfuint,
-		["DFUInt"] = setdfuint,
-		["FString"] = setfstring,
-		["DFString"] = setdfstring,
-		["FLog"] = setflog,
-		["DFLog"] = setdflog,
-		["FFloat"] = setffloat,
-		["DFFloat"] = setdffloat,
-		["FTest"] = setftest,
-		["DFTest"] = setdftest,
-		["FTime"] = setftime,
-		["DFTime"] = setdftime,
-		["SFFlag"] = setsfflag
-	}
-
-	local detectedSetter, cleanName
-	for prefix, setter in pairs(setterMap) do
-		if flag:sub(1, #prefix) == prefix then
-			detectedSetter = setter
-			cleanName = flag:sub(#prefix + 1)
-			break
-		end
-	end
-
-	local path = "Bloxstrap/FFlags.json"
-	local flags = isfile(path) and HttpService:JSONDecode(readfile(path)) or {}
-
-	if detectedSetter then
-		local success, err = pcall(function()
-			detectedSetter(cleanName, tostring(value))
-		end)
-
-		if success then
-			flags[flag] = tostring(value)
-		else
-			warn("❌ Failed to set FastFlag:", flag, "| Error:", err)
-			flags[flag] = nil
-		end
-else
-		warn("❌ Unknown flag type for:", flag)
-		flags[flag] = nil
-	end
-
-	writefile(path, HttpService:JSONEncode(flags))
-end
+end;
