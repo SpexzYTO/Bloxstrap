@@ -1,51 +1,45 @@
 local cloneref = cloneref or function(...) return ... end
-local HttpService = cloneref(game.GetService(game, "HttpService"))
+local HttpService = cloneref(game:GetService("HttpService"))
 
-local function strip(flag: string)
-    return flag
-        :gsub("DFInt", "")
-        :gsub("DFFlag", "")
-        :gsub("FFlag", "")
-        :gsub("FInt", "")
-        :gsub("DFString", "")
-        :gsub("FString", "")
-        :gsub("FLog", "")
-        :gsub("DFLog", "")
-        :gsub("DFFLoat", "") 
-        :gsub("FFloat", "")
-        :gsub("DFTime", "")
-        :gsub("FTime", "")
-        :gsub("DFTest", "")
-        :gsub("FTest", "")
-        :gsub("DFUInt", "")
-        :gsub("FUInt", "")
-        :gsub("SFInt", "")
-        :gsub("SFFlag", "")
-end
+return function(flag: string, value: string): (string, string) -> ()
+	local type = type or typeof
+	if type(flag) ~= "string" then
+		return task.spawn(error, "string expected, got " .. type(flag))
+	end
 
-return function(flag: string, value: string)
-    local type = type or typeof
-    if type(flag) ~= "string" then
-        return task.spawn(error, "string expected, got " .. type(flag))
-    end
+	local FFlag: string = flag
+		:gsub("DFInt", "")
+		:gsub("DFFlag", "")
+		:gsub("FFlag", "")
+		:gsub("FInt", "")
+		:gsub("DFString", "")
+		:gsub("FString", "")
+		:gsub("FLog", "")
+		:gsub("DFLog", "")
+		:gsub("DFFLoat", "")
+		:gsub("FFloat", "")
+		:gsub("DFTime", "")
+		:gsub("FTime", "")
+		:gsub("DFTest", "")
+		:gsub("FTest", "")
+		:gsub("DFUInt", "")
+		:gsub("FUInt", "")
+		:gsub("SFInt", "")
+		:gsub("SFFlag", "")
 
-    local FFlag: string = Bloxstrap.TouchEnabled and strip(flag) or flag
+	local path = "Bloxstrap/FFlags.json"
+	local flags = HttpService:JSONDecode(readfile(path))
 
-    -- Safe existence check to prevent crashes
-    local ok, current = pcall(function()
-        return getfflag(FFlag)
-    end)
+	local success, err = pcall(function()
+		setfflag(FFlag, tostring(value))
+	end)
 
-    if not ok or current == nil then
-        local err = isfile(errorlog) and readfile(errorlog) or "Error while loading FFlags: "
-        writefile(errorlog, err .. "\nFFlag not found or inaccessible: " .. FFlag .. " (from " .. flag .. ")")
-        warn("[Bloxstrap] FFlag not found or inaccessible:", FFlag, "(from", flag .. ")")
-        return -- don’t crash, just stop here
-    end
+	if success then
+		flags[flag] = tostring(value)
+	else
+		warn("❌ Failed to set FastFlag:", flag, "| Error:", err)
+		flags[flag] = nil -- remove it from the list
+	end
 
-    -- If it exists, save & set it
-    local fflagfile = HttpService:JSONDecode(readfile("Bloxstrap/FFlags.json"))
-    fflagfile[flag] = tostring(value)
-    writefile("Bloxstrap/FFlags.json", HttpService:JSONEncode(fflagfile))
-    return setfflag(FFlag, tostring(value))
+	writefile(path, HttpService:JSONEncode(flags))
 end
