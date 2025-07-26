@@ -6,36 +6,54 @@ return function(flag: string, value: string?): (string?)
 		return task.spawn(error, "string expected, got " .. type(flag))
 	end
 
-	local FFlag: string = Bloxstrap.TouchEnabled and flag
-		:gsub("DFInt", "")
-		:gsub("DFFlag", "")
-		:gsub("FFlag", "")
-		:gsub("FInt", "")
-		:gsub("DFString", "")
-		:gsub("FString", "")
-		:gsub("FLog", "")
-		:gsub("DFLog", "")
-		:gsub("DFFLoat", "")
-		:gsub("FFloat", "")
-		:gsub("DFTime", "")
-		:gsub("FTime", "")
-		:gsub("DFTest", "")
-		:gsub("FTest", "")
-		:gsub("DFUInt", "")
-		:gsub("FUInt", "")
-		:gsub("SFInt", "")
-		:gsub("SFFlag", "")
-		or flag
-
 	local path = "Bloxstrap/FFlags.json"
 	local flags = isfile(path) and HttpService:JSONDecode(readfile(path)) or {}
 
-	local success, result = pcall(getfflag, FFlag)
+	local getterMap = {
+		["FFlag"] = getfflag,
+		["FInt"] = getfint,
+		["DFInt"] = getdfint,
+		["SFInt"] = getsfint,
+		["FUInt"] = getfuint,
+		["DFUInt"] = getdfuint,
+		["FString"] = getfstring,
+		["DFString"] = getdfstring,
+		["FLog"] = getflog,
+		["DFLog"] = getdflog,
+		["FFloat"] = getffloat,
+		["DFFloat"] = getdffloat,
+		["FTest"] = getftest,
+		["DFTest"] = getdftest,
+		["FTime"] = getftime,
+		["DFTime"] = getdftime,
+		["SFFlag"] = getsfflag
+	}
+
+	-- Detect flag prefix and remove it for actual flag name
+	local detectedGetter, cleanName
+	for prefix, getter in pairs(getterMap) do
+		if flag:sub(1, #prefix) == prefix then
+			detectedGetter = getter
+			cleanName = flag:sub(#prefix + 1)
+			break
+		end
+	end
+
+	if not detectedGetter then
+		warn("❌ Unknown flag type: " .. flag)
+		flags[flag] = nil
+		writefile(path, HttpService:JSONEncode(flags))
+		return nil
+	end
+
+	local success, result = pcall(function()
+		return detectedGetter(cleanName)
+	end)
 
 	if success and result ~= nil then
 		return result
 	else
-		warn("⚠️ getfflag failed for:", FFlag)
+		warn("⚠️ Getter failed for:", flag)
 		flags[flag] = nil
 		writefile(path, HttpService:JSONEncode(flags))
 		return nil
