@@ -7,5 +7,5 @@ getgenv().autosetup = {
     path = 'Bloxstrap', --> doesnt work rn
     setup = true --> init after installaiton
 }
-loadstring(game.HttpGet(game, 'https://raw.githubusercontent.com/SpexzYTO/Bloxstrap/main/initiate.lua', true))()
+loadstring(game.HttpGet(game, 'https://raw.githubusercontent.com/SpexzYTO/Bloxstrap/main/main/initiate.lua', true))()
 ```
